@@ -18,6 +18,23 @@ export class AuthService {
 
   constructor( private http : HttpClient) { }
 
+  register(name:string, email:string, password:string){
+    const url = `${this.baseUrl}/auth/new`;
+    const body = {name, email, password}
+
+    return this.http.post<AuthResponse>(url, body)
+    .pipe( //PERSONALIZAR PIPE  
+      tap( ({ ok, token}) => {
+        if(ok){
+          localStorage.setItem('token',token!)
+        }
+      }),
+      map(resp => resp.ok),
+      catchError(err => of(err)) 
+    )
+  }
+
+
   login( email: string, password : string){
 
     const url = `${this.baseUrl}/auth`;
@@ -28,10 +45,6 @@ export class AuthService {
       tap( resp => {
         if( resp.ok){
           localStorage.setItem('token', resp.token!)
-          this._user = {
-            name: resp.name!,
-            uid : resp.uid!
-          }
         }
       }),
       map(resp => resp.ok),
@@ -41,15 +54,28 @@ export class AuthService {
 
 
   validateToken(): Observable<boolean>{
-    const url = `${this.baseUrl}/renew`;
+    const url = `${this.baseUrl}/auth/renew`;
     const headers= new HttpHeaders()
     .set ('x-token', localStorage.getItem('token') || '')
     return this.http.get<AuthResponse>(url, {headers})
     .pipe(
       map( resp => {
+        console.log(resp.token)
+        localStorage.setItem('token', resp.token!)
+        this._user = {
+          name: resp.name!,
+          uid : resp.uid!, 
+          email : resp.email!
+        }
       return resp.ok!
       }),
       catchError( err => of(false))
     )
   }
+
+  logout(){
+    localStorage.clear();
+  }
 }
+
+

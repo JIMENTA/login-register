@@ -23,13 +23,11 @@ export class LoginComponent {
     
   }
   login(){
-    console.log(this.myForm.value)
     const {email, password} = this.myForm.value;
 
     this.authService.login(email, password)
     .subscribe ( ok => {
-      console.log(ok)
-    if ( ok === true) {
+    if ( ok ) {
       this.router.navigateByUrl('/dashboard')
     } else {
       Swall.fire ('Error', ok , 'error')
